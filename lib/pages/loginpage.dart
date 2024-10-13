@@ -67,6 +67,7 @@ class _LoginpageState extends State<Loginpage> {
                 ),
                 SizedBox(height: 20,),
                 CustomFormTextField(
+                    obscureText: true,
                   onChanged: (data){
                     password = data;
                   },
@@ -79,35 +80,42 @@ class _LoginpageState extends State<Loginpage> {
                       isLoading = true;
                       setState(() {});
                       try {
-                        UserCredential user = await FirebaseAuth.instance
-                            .signInWithEmailAndPassword(
-                            email: email!, password: password!);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(
-                              'Success'),),);
-                        // Navigator.of(context).push(
-                        //   MaterialPageRoute(
-                        //     builder: (context) =>  Chatpage(),
-                        //   ),
-                        // );
-                        Navigator.pushNamed(context, 'chatpage');
-                      } on FirebaseAuthException catch (e) {
-                        if (e.code == 'User-not-found') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(
-                                'User-not-found, please try agian'),),);
-                        } else if (e.code == 'Wrong-password') {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(
-                                'Wrong-password, please try agian'),),);
+                        await registerUser(context);
+                        showSnakBar(context, "Login Sucrssfully");
+                           Navigator.pushNamed(context, 'chatpage' , arguments: email);
+                      }  on FirebaseAuthException catch (e) {
+                        if (e.code == 'user-not-found') {
+                          showSnakBar(context, 'No user found for that email.');
+                        } else if (e.code == 'wrong-password') {
+                          showSnakBar(context, 'Wrong password provided for that user.');
+                        } else if (e.code == 'invalid-credential') {
+                          showSnakBar(context, 'The credential is invalid or expired.');
+                        } else {
+                          showSnakBar(context, 'Authentication error: ${e.message}');
                         }
+                      } catch (e) {
+                        print(e); // Log the error
+                        showSnakBar(context, 'There is an error');
                       }
-                      catch (e) {
-                        print(e);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(
-                              'Please try agian'),),);
-                      }
+                      // try {
+                      //   await registerUser(context);
+                      //   // Navigator.of(context).push(
+                      //   //   MaterialPageRoute(
+                      //   //     builder: (context) =>  Chatpage(),
+                      //   //   ),
+                      //   // );
+                      //   Navigator.pushNamed(context, 'chatpage' , arguments: email);
+                      // } on FirebaseAuthException catch (e) {
+                      //   if (e.code == 'user-not-found') {
+                      //       showSnakBar(context, 'No user found for that email.');
+                      //   } else if (e.code == 'The credential is invalid or expired.') {
+                      //     showSnakBar(context, 'The credential is invalid or expired.');
+                      //   }
+                      // }
+                      // catch (e) {
+                      //   print(e);
+                      //   showSnakBar(context, 'Please try agian');
+                      // }
 
 
                       isLoading = false;
@@ -148,5 +156,19 @@ class _LoginpageState extends State<Loginpage> {
         ),
       ),
     );
+  }
+
+  void showSnakBar(BuildContext context , String messagee) {
+    ScaffoldMessenger.of(context).showSnackBar(
+       SnackBar(content: Text(messagee),),);
+  }
+
+  Future<void> registerUser(BuildContext context) async {
+     UserCredential user = await FirebaseAuth.instance
+        .signInWithEmailAndPassword(
+        email: email!, password: password!);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(
+          'Success'),),);
   }
   }

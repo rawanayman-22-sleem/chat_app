@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
 class CustomFormTextField extends StatelessWidget {
-   CustomFormTextField({ this.hinttext, this.onChanged});
+   CustomFormTextField({ this.hinttext, this.onChanged, this.obscureText = false});
 
 Function(String)? onChanged;
 String? hinttext;
+bool? obscureText;
 
   @override
   Widget build(BuildContext context) {
     return  TextFormField(
+      obscureText: obscureText!,
       validator: (data) //firebase
       {
         if(data!.isEmpty) {

@@ -14,11 +14,14 @@ class Chatpage extends StatelessWidget {
   CollectionReference messages = FirebaseFirestore.instance.collection(kMESSAGEcollections);
   //firebase
   TextEditingController controller = TextEditingController();
+    final _controller = ScrollController();
+
 
   @override
   Widget build(BuildContext context) {
+  var email =  ModalRoute.of(context)!.settings.arguments ;
     return  StreamBuilder<QuerySnapshot>(
-      stream: messages.orderBy(kCreateAt).snapshots(),
+      stream: messages.orderBy(kCreateAt , descending: true).snapshots(),
       builder: (context , snashot){
         if(snashot.hasData) {
           List<Message> messagelist = [];
@@ -46,10 +49,14 @@ class Chatpage extends StatelessWidget {
               children: [
                 Expanded(
                   child: ListView.builder(
+                    reverse: true,
+                    controller: _controller,
                     itemCount: messagelist.length,
                     itemBuilder: (context, index) {
                     final message = messagelist[index].message;
-                      return Chatbuble(message: message);
+                      return messagelist[index].id == email? Chatbuble(
+                          message: message,)
+                      : ChatbublefoFrind(message: message,);
                     },
                   ),
                 ),
@@ -61,9 +68,20 @@ class Chatpage extends StatelessWidget {
                     onSubmitted: (data) {
                       messages.add({
                         kMESSAGEcollections: data,
-                        kCreateAt: DateTime.now()
+                        kCreateAt: DateTime.now(),
+                        'id': email
                       });
                       controller.clear();
+
+                      // _controller.jumpTo(
+                      //     _controller.position.maxScrollExtent,
+
+                      _controller.animateTo(
+                               0,
+                       // _controller.position.maxScrollExtent,
+                          duration: Duration(seconds: 1),
+                          curve: Curves.easeInCirc
+                               );
                     },
                     decoration: InputDecoration(
                         hintText: 'Send Message',
@@ -88,7 +106,7 @@ class Chatpage extends StatelessWidget {
           );
         }
         else {
-          return Text('Loading....');
+          return Text('');
         }
       }
     );
